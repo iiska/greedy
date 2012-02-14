@@ -17,6 +17,9 @@ clean:
 	rm ./greedy
 
 install:
+	touch /var/lib/games/greedy.scores
+	chown root:games greedy
+	chmod u+s greedy
 	cp greedy $(bindir)
 
 uninstall:

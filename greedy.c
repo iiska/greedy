@@ -15,12 +15,13 @@
 #include <ncurses.h>
 #include <stdlib.h>
 
-#define VERSION "Version: 0.1.2"
+#define VERSION "Version: 0.1.4"
 
 #define S_MENU 0
 #define S_NEWGAME 1
 #define S_GAME 2
 #define S_OVER 3
+#define S_SCORES 4
 
 #define LEVEL_WIDTH 80
 #define LEVEL_HEIGHT 23
@@ -30,9 +31,16 @@
 #define N_COLOR 1
 #define H_COLOR 2
 
+#define HISCORE_FILE "/var/lib/games/greedy.scores"
+
 struct level_pos {
 	int color;
 	int number;
+};
+
+struct score_entry {
+	int s;
+	char n[200];
 };
 
 void makeLevel();
@@ -44,13 +52,23 @@ void game();
 void quit(int ret_code);
 void usage();
 
+FILE *openScoreFile(char *mode);
+void loadScores();
+void saveScores();
+void addScoreEntry(char *nname, int nscore);
+
+
 struct level_pos level[LEVEL_WIDTH][LEVEL_HEIGHT];
+
+struct score_entry hiscores[10];
 
 int state = 0;
 int changed = 1;
 
 int px, py, score;
 char score_str[12];
+
+
 
 int main(int argc, char *argv[]) {
 	int transparent_bg = 0;
@@ -103,6 +121,8 @@ int main(int argc, char *argv[]) {
 
 void game() {
 	int i, j;
+	// temp-string for hiscore-screenformatting
+	char tmpstr[256];
 	
 	while(1) {
 		if (state == S_NEWGAME) {
@@ -185,8 +205,51 @@ void game() {
 					score_str);
 			mvaddstr(LEVEL_HEIGHT - 5,(LEVEL_WIDTH - 13) / 2,
 					"Press any key");
+			
 			if (getch() != 0) {
-				state = 0;
+				if (score > hiscores[9].s) {
+					clear();
+					printw("You made hiscore! What's your name?\n\nName: ");
+					refresh();
+					echo();
+					getstr(tmpstr);
+					noecho();
+					addScoreEntry(tmpstr, score);
+					// We don't need scores anymore...
+					score = 0;
+					state = S_SCORES;
+					changed = 1;
+				}
+				else
+					state = S_MENU;
+			}
+		}
+		else if (state == S_SCORES) {
+			if ( hiscores[0].s == 0 )
+				loadScores();
+			if (changed == 1) {
+			  clear();
+			  attron(COLOR_PAIR(N_COLOR));
+			  mvaddstr(2, (LEVEL_WIDTH-9) / 2, "Hiscores:");
+			  attron(COLOR_PAIR(H_COLOR));
+			  for (i=0;i<3;i++) {
+				  sprintf(tmpstr, "%d. %s  %d\n", i+1,
+						  hiscores[i].n, hiscores[i].s);
+				  mvaddstr(5+i, 5, tmpstr);
+			  }
+			  attron(COLOR_PAIR(N_COLOR));
+			  for (i=3;i<10;i++) {
+                                  sprintf(tmpstr, "%d. %s  %d\n", i+1,
+						  hiscores[i].n, hiscores[i].s);
+				  mvaddstr(5+i, 5, tmpstr);
+			  }
+                        mvaddstr(LEVEL_HEIGHT - 5,(LEVEL_WIDTH - 13) / 2,
+					"Press any key");
+			changed = 0;
+			}
+			if (getch() != 0) {
+				state = S_MENU;
+				changed = 1;
 			}
 		}
 		else if (state == S_MENU) {
@@ -209,7 +272,9 @@ void game() {
 				mvaddstr(8,(LEVEL_WIDTH-33) / 2, VERSION);
 				mvaddstr(10,(LEVEL_WIDTH-18) / 2,
 						"s - Start new game");
-				mvaddstr(11,(LEVEL_WIDTH-8) / 2, "q - Quit");
+				mvaddstr(11,(LEVEL_WIDTH-17) / 2,
+						"h - Show Hiscores");
+				mvaddstr(12,(LEVEL_WIDTH-8) / 2, "q - Quit");
 				refresh();
 				changed = 0;
 			}
@@ -217,6 +282,10 @@ void game() {
 			switch (getch()) {
 				case 's':
 					state++;
+					break;
+				case 'h':
+					state = S_SCORES;
+					changed = 1;
 					break;
 				case 'q':
 					quit(0);
@@ -340,4 +409,92 @@ int getRandomInt(int min, int max) {
 	rand_int = min + (rand() % (max - min + 1));
 	
 	return rand_int;
+}
+
+/* 
+ * Begin Hiscores handling code
+ *
+ * Looked little help from Penguin-Command sources
+ * You can get Penguin-Command from  http://www.linux-games.com
+ */
+
+FILE *openScoreFile(char *mode) {
+	FILE *file;
+
+	if ( (file = fopen(HISCORE_FILE, mode)) == NULL) {
+		printf("\nUnable to open hiscore file \"%s\" ", HISCORE_FILE);
+		if ( strcmp(mode, "r") == 0)
+			printf("for read.\n");
+		else if ( strcmp(mode, "w") == 0)
+			printf("for write.\n");
+	}
+
+	return file;
+}
+
+void loadScores() {
+	int i;
+	FILE *file;
+
+	if ( (file = openScoreFile("r")) == NULL) {
+		if ( (file = openScoreFile("w")) == NULL ) {
+			quit(EXIT_FAILURE);
+		}
+		for (i=0;i<10;i++) {
+			// TODO: Add random names from credits to this later
+			fprintf(file, "Player\n");
+			fprintf(file, "%d\n", 1000-i*100);
+		}
+		fclose(file);
+		file = openScoreFile("r");
+	}
+
+	for (i=0;i<10;i++) {
+		fscanf(file, "%s\n", hiscores[i].n);
+		fscanf(file, "%d\n", &hiscores[i].s);
+	}
+
+	fclose(file);
+}
+
+void saveScores() {
+	int i;
+	FILE* file;
+
+	if ( (file = openScoreFile("w")) == NULL) {
+		quit(EXIT_FAILURE);
+	}
+
+	for (i=0;i<10;i++) {
+		fprintf(file, "%s\n", hiscores[i].n);
+		fprintf(file, "%d\n", hiscores[i].s);
+	}
+	
+	fclose(file);
+}
+
+void addScoreEntry(char *nname, int nscore) {
+	int i,j;
+	
+	if (hiscores[0].s == 0) {
+		loadScores();
+	}
+
+	for (i=0;i<10;i++) {
+		if (score > hiscores[i].s) {
+			/*
+			 * Move score entries lower to make room for new one
+			 */
+			for (j=8;j>=i;j--) {
+				hiscores[j+1].s = hiscores[j].s;
+				sprintf(hiscores[j+1].n, "%s", hiscores[j].n);
+			}
+			// Add new score entry
+			hiscores[i].s = nscore;
+			sprintf(hiscores[i].n, "%s", nname);
+			break;
+		}
+	}
+
+	saveScores();
 }
