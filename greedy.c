@@ -15,7 +15,7 @@
 #include <ncurses.h>
 #include <stdlib.h>
 
-#define VERSION "Version: 0.1.0"
+#define VERSION "Version: 0.1.1"
 
 #define S_MENU 0
 #define S_NEWGAME 1
@@ -39,26 +39,20 @@ void makeLevel();
 void litRoute();
 void movePlayer(int x, int y);
 int isGameOver();
+int getRandomInt(int min, int max);
 void game();
 void quit(int ret_code);
-int getRandomInt(int min, int max);
-
 
 struct level_pos level[LEVEL_WIDTH][LEVEL_HEIGHT];
+
 int state = 0;
 int changed = 1;
 
 int px, py, score;
 char score_str[12];
 
-FILE *random_dev;
-
 int main(int argc, char *argv[]) {
-
-	if ( (random_dev = fopen("/dev/urandom","rb")) == NULL) {
-		printf("Unable to open /dev/urandom");
-		return EXIT_FAILURE;
-	}
+	srand(time((time_t *) 0));
 	
 	initscr();
 	if (has_colors()) {
@@ -293,7 +287,6 @@ int isGameOver() {
 
 void quit(int ret_code) {
 	endwin();
-	fclose(random_dev);
 	exit(ret_code);
 }
 
@@ -305,12 +298,8 @@ int getRandomInt(int min, int max) {
 	if (min > max) {
 		return 0;
 	}
-
-	if ( fread(&rand_int, 1, sizeof(rand_int),random_dev) != sizeof(rand_int) ) {
-		printf("Unable to read /dev/urandom");
-		return -1;
-	}
 	
-	rand_int = min + (rand_int % (max - min + 1));
+	rand_int = min + (rand() % (max - min + 1));
+	
 	return rand_int;
 }
