@@ -24,5 +24,6 @@ install:
 
 uninstall:
 	rm $(bindir)/greedy
+	rm /var/lib/games/greedy.scores
 
 remove:: uninstall

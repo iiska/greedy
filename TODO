@@ -1,8 +1,7 @@
 TODO
 ----
 
-  - better colors
-    - nicer Hiscore screen
+  - global hiscore saving that works without setuid binary if possible
 
   - different playmodes, current is 'classic'
 

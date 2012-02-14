@@ -1,3 +1,10 @@
+5.5.2002 Version 0.1.5
+----------------------
+
+  - nicer hiscore screen
+  - "make uninstall" removes hiscore file from /var/lib/games
+
+
 28.4.2002 Version 0.1.4
 -----------------------
 
@@ -22,7 +29,7 @@
 -----------------------
 
   - better random number generation
-  - 200 bytes smaller binary
+  - 200 bytes smaller binary ;-)
 
 
 1.4.2002  Version 0.1.0

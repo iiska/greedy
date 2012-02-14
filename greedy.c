@@ -6,7 +6,6 @@
  *    (   /  \____|_|  \___|\___|\__,_|\__, | (   /
  *     |_|                             |___/   |_|
  *
- *     Verion: 0.0.1
  *     Author: Juhamatti Niemelä <juhamatti.niemela@edu.haapavesi.fi>
  *     29.03.2002
  *     
@@ -15,7 +14,7 @@
 #include <ncurses.h>
 #include <stdlib.h>
 
-#define VERSION "Version: 0.1.4"
+#define VERSION "Version: 0.1.5"
 
 #define S_MENU 0
 #define S_NEWGAME 1
@@ -25,6 +24,7 @@
 
 #define LEVEL_WIDTH 80
 #define LEVEL_HEIGHT 23
+#define HS_STRINGLEN 33
 
 // colors
 #define P_COLOR 3
@@ -40,7 +40,7 @@ struct level_pos {
 
 struct score_entry {
 	int s;
-	char n[200];
+	char n[20];
 };
 
 void makeLevel();
@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
 void game() {
 	int i, j;
 	// temp-string for hiscore-screenformatting
-	char tmpstr[256];
+	char tmpstr[20];
 	
 	while(1) {
 		if (state == S_NEWGAME) {
@@ -230,22 +230,37 @@ void game() {
 			if (changed == 1) {
 			  clear();
 			  attron(COLOR_PAIR(N_COLOR));
-			  mvaddstr(2, (LEVEL_WIDTH-9) / 2, "Hiscores:");
+			  mvaddstr(1, (LEVEL_WIDTH-30) / 2, " _  _ _");
+			  mvaddstr(2, (LEVEL_WIDTH-30) / 2, "| || (_)___ __ ___ _ _ ___ ___");
+			  mvaddstr(3, (LEVEL_WIDTH-30) / 2, "| __ | (_-</ _/ _ \\ '_/ -_|_-<");
+			  mvaddstr(4, (LEVEL_WIDTH-30) / 2, "|_||_|_/__/\\__\\___/_| \\___/__/");
+
+			  // Highlight the first three
 			  attron(COLOR_PAIR(H_COLOR));
 			  for (i=0;i<3;i++) {
-				  sprintf(tmpstr, "%d. %s  %d\n", i+1,
-						  hiscores[i].n, hiscores[i].s);
-				  mvaddstr(5+i, 5, tmpstr);
+				  sprintf(tmpstr, " %d.", i+1);
+				  mvaddstr(6+i, (LEVEL_WIDTH - HS_STRINGLEN) / 2, tmpstr);
+				  mvaddstr(6+i, (LEVEL_WIDTH - HS_STRINGLEN) / 2 + 5, hiscores[i].n);
+				  sprintf(tmpstr, "%d", hiscores[i].s);
+				  mvaddstr(6+i, (LEVEL_WIDTH - HS_STRINGLEN) / 2 + 27, tmpstr);
 			  }
 			  attron(COLOR_PAIR(N_COLOR));
-			  for (i=3;i<10;i++) {
-                                  sprintf(tmpstr, "%d. %s  %d\n", i+1,
-						  hiscores[i].n, hiscores[i].s);
-				  mvaddstr(5+i, 5, tmpstr);
+			  for (i=3;i<9;i++) {
+                                  sprintf(tmpstr, " %d.", i+1);
+				  mvaddstr(6+i, (LEVEL_WIDTH - HS_STRINGLEN) / 2, tmpstr);
+				  mvaddstr(6+i, (LEVEL_WIDTH - HS_STRINGLEN) / 2 + 5, hiscores[i].n);
+				  sprintf(tmpstr, "%d", hiscores[i].s);
+				  mvaddstr(6+i, (LEVEL_WIDTH - HS_STRINGLEN) / 2 + 27, tmpstr);
 			  }
-                        mvaddstr(LEVEL_HEIGHT - 5,(LEVEL_WIDTH - 13) / 2,
+			  sprintf(tmpstr, "%d.", 10);
+			  mvaddstr(15, (LEVEL_WIDTH - HS_STRINGLEN) / 2, tmpstr);
+			  mvaddstr(15, (LEVEL_WIDTH - HS_STRINGLEN) / 2 + 5, hiscores[9].n);
+			  sprintf(tmpstr, "%d", hiscores[9].s);
+			  mvaddstr(15, (LEVEL_WIDTH - HS_STRINGLEN) / 2 + 27, tmpstr);
+			  
+			  mvaddstr(LEVEL_HEIGHT - 4,(LEVEL_WIDTH - 13) / 2,
 					"Press any key");
-			changed = 0;
+			  changed = 0;
 			}
 			if (getch() != 0) {
 				state = S_MENU;
@@ -410,6 +425,7 @@ int getRandomInt(int min, int max) {
 	
 	return rand_int;
 }
+
 
 /* 
  * Begin Hiscores handling code
