@@ -1,5 +1,16 @@
-  ____                   _       
- / ___|_ __ ___  ___  __| |_   _ 
+Editors notes :-)
+-----------------
+
+Found this cute game project done during Highschool from my old
+archives. It still seems to compile and is even playable so I decided
+to publish it again.
+
+Rest of this document is the original README.
+
+
+
+  ____                   _
+ / ___|_ __ ___  ___  __| |_   _
 | |  _| '__/ _ \/ _ \/ _` | | | |
 | |_| | | |  __/  __/ (_| | |_| |
  \____|_|  \___|\___|\__,_|\__, |
@@ -46,4 +57,4 @@ If there are nothing but empty squares around player, game is over.
 
 Author
 ------
-Juhamatti Niemel‰ <juhamatti.niemela@edu.haapavesi.fi>
+Juhamatti Niemel√§ <iiska AT iki DOT fi>
