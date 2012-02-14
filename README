@@ -1,0 +1,49 @@
+  ____                   _       
+ / ___|_ __ ___  ___  __| |_   _ 
+| |  _| '__/ _ \/ _ \/ _` | | | |
+| |_| | | |  __/  __/ (_| | |_| |
+ \____|_|  \___|\___|\__,_|\__, |
+                           |___/
+
+Version 0.1.0
+
+
+Introduction
+------------
+
+When I got my first computer (Amiga 500+), I got also few game floppies with
+it. There was game called greed in one of those floppies. Because I didn't
+find similar game for Linux, I made this.
+
+
+Install
+-------
+
+Unpack the tar archive
+
+  $ tar zxvf greedy-0.0.10.tar.gz
+
+Run make and make install
+
+  $ make
+
+  $ make install
+
+And then play greedy!
+
+  $ greedy
+
+
+Playing
+-------
+
+In greedy you must increase your score by collecting numbers by moving over
+them. You can move using numpad. (Check that NumLock is on). Highlighted
+numbers show how far you go when you move into that direction. The distance
+is same than number value in square next to player (Little @ character).
+If there are nothing but empty squares around player, game is over.
+
+
+Author
+------
+Juhamatti Niemelä <juhamatti.niemela@edu.haapavesi.fi>

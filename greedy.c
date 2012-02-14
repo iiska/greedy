@@ -15,6 +15,8 @@
 #include <ncurses.h>
 #include <stdlib.h>
 
+#define VERSION "Version: 0.1.0"
+
 #define S_MENU 0
 #define S_NEWGAME 1
 #define S_GAME 2
@@ -38,14 +40,16 @@ void litRoute();
 void movePlayer(int x, int y);
 int isGameOver();
 void game();
+void quit(int ret_code);
 int getRandomInt(int min, int max);
 
 
 struct level_pos level[LEVEL_WIDTH][LEVEL_HEIGHT];
-int state = 1;
-int changed = 0;
+int state = 0;
+int changed = 1;
 
 int px, py, score;
+char score_str[12];
 
 FILE *random_dev;
 
@@ -64,14 +68,17 @@ int main(int argc, char *argv[]) {
 		init_pair(H_COLOR, COLOR_CYAN, bg);
 		init_pair(P_COLOR, COLOR_WHITE, bg);
 	}
+	else {
+		printf("This game is very unplayable without colors.");
+		quit(EXIT_FAILURE);
+	}
 	nl();
 	noecho();
 	curs_set(0);
-
+	
 	game();
 	
-	endwin();
-	fclose(random_dev);
+	quit(0);
 	return 0;
 }
 
@@ -85,7 +92,8 @@ void game() {
 			py = getRandomInt(0, LEVEL_HEIGHT-1);
 			state++;
 			changed = 1;
-
+			
+			clear();
 			for (i=0; i<LEVEL_WIDTH; i++) {
 				mvaddch(LEVEL_HEIGHT,i,'-');
 			}
@@ -106,8 +114,10 @@ void game() {
 				}
 			attron(COLOR_PAIR(P_COLOR));
 			mvaddch(py, px, '@');
-			//mvaddstr(LEVEL_HEIGHT+1,0,"Score: "+score);
+			sprintf(score_str, "%s %d", "Score:", score);
+			mvaddstr(LEVEL_HEIGHT+1,LEVEL_WIDTH-12,score_str);
 			refresh();
+			changed = 0;
 			}
 		
 			switch (getch()) {
@@ -136,16 +146,57 @@ void game() {
 					movePlayer(px-1,py);
 					break;
 			}
+			if (isGameOver() == 1) {
+				state++;
+			}
 		}
 		else if (state == S_OVER) {
-			mvaddstr(LEVEL_HEIGHT / 2, (LEVEL_WIDTH - 9) / 2, "Game Over");
+			clear();
+			attron(COLOR_PAIR(N_COLOR));
+			mvaddstr(LEVEL_HEIGHT / 2, (LEVEL_WIDTH - 9) / 2,
+					"Game Over");
+			sprintf(score_str, "%s %d", "Score: ", score);
+			mvaddstr(LEVEL_HEIGHT / 2 + 1, (LEVEL_WIDTH - 12) / 2,
+					score_str);
+			mvaddstr(LEVEL_HEIGHT - 5,(LEVEL_WIDTH - 13) / 2,
+					"Press any key");
 			if (getch() != 0) {
 				state = 0;
 			}
 		}
-		
-		if ( (state == S_GAME) && (isGameOver() == 1) ) {
-			state++;
+		else if (state == S_MENU) {
+			if (changed == 1) {
+				clear();
+				attron(COLOR_PAIR(N_COLOR));
+				// Writes large Greedy text
+				mvaddstr(2,(LEVEL_WIDTH-33) / 2,
+						"  ____                   _");
+				mvaddstr(3,(LEVEL_WIDTH-33) / 2,
+						" / ___|_ __ ___  ___  __| |_   _");
+				mvaddstr(4,(LEVEL_WIDTH-33) / 2,
+						"| |  _| '__/ _ \\/ _ \\/ _` | | | |");
+				mvaddstr(5,(LEVEL_WIDTH-33) / 2,
+						"| |_| | | |  __/  __/ (_| | |_| |");
+				mvaddstr(6,(LEVEL_WIDTH-33) / 2,
+						" \\____|_|  \\___|\\___|\\__,_|\\__, |");
+				mvaddstr(7,(LEVEL_WIDTH-33) / 2,
+						"                           |___/");
+				mvaddstr(8,(LEVEL_WIDTH-33) / 2, VERSION);
+				mvaddstr(10,(LEVEL_WIDTH-18) / 2,
+						"s - Start new game");
+				mvaddstr(11,(LEVEL_WIDTH-8) / 2, "q - Quit");
+				refresh();
+				changed = 0;
+			}
+
+			switch (getch()) {
+				case 's':
+					state++;
+					break;
+				case 'q':
+					quit(0);
+					break;
+			}
 		}
 		
 		usleep(80000L);
@@ -169,12 +220,21 @@ void litRoute() {
 
 	for (i = -1; i <= 1; i++) {
 		for (j = -1; j <= 1; j++) {
-			if ( (px+i >= 0) && (py+j >= 0) && (px+i < LEVEL_WIDTH) && (py+j < LEVEL_HEIGHT) ) {
-				for ( k = 1; k <= level[px+i][py+j].number; k++) {
-					if ( level[px+(i*k)][py+(j*k)].number == 0 ) {
+			if ( (px+i >= 0) && (py+j >= 0) &&
+					(px+i < LEVEL_WIDTH) &&
+					(py+j < LEVEL_HEIGHT) ) {
+				
+				for ( k = 1; k <= level[px+i][py+j].number; k++)
+				{
+					if ( level[px+(i*k)][py+(j*k)].number
+							== 0 ) {
 						break;
 					}
-					else if ( (px+(i*k) >= 0) && (py+(j*k) >= 0) && (px+(i*k) < LEVEL_WIDTH) && (py+(j*k) < LEVEL_HEIGHT) ) {
+					else if ( (px+(i*k) >= 0) &&
+						(py+(j*k) >= 0) &&
+						(px+(i*k) < LEVEL_WIDTH)
+						&& (py+(j*k) < LEVEL_HEIGHT) ) {
+						
 						level[px+(i*k)][py+(j*k)].color = H_COLOR;
 					}
 					else
@@ -196,7 +256,9 @@ void movePlayer(int x, int y) {
 			i_max = i-1;
 			break;
 		}
-		if ( (px+(i*xc) >= 0) && (py+(i*yc) >= 0) && (px+(i*xc) < LEVEL_WIDTH) && (py+(i*yc) < LEVEL_HEIGHT) ) {
+		if ( (px+(i*xc) >= 0) && (py+(i*yc) >= 0) &&
+				(px+(i*xc) < LEVEL_WIDTH) &&
+				(py+(i*yc) < LEVEL_HEIGHT) ) {
 			score += level[px+(i*xc)][py+(i*yc)].number;
 			level[px+(i*xc)][py+(i*yc)].number = 0;
 		}
@@ -227,6 +289,12 @@ int isGameOver() {
 	}
 
 	return 1;
+}
+
+void quit(int ret_code) {
+	endwin();
+	fclose(random_dev);
+	exit(ret_code);
 }
 
 int getRandomInt(int min, int max) {

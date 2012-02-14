@@ -1,18 +1,25 @@
-LIBDIR = /usr/lib
-INCLUDEDIR = /usr/include
-LIBS = -lncurses
 CC = gcc
-FLAGS = -O2 -Wall
-OBJS = greedy.o
+STRIP = strip
+FLAGS = -O2 -fomit-frame-pointer -funroll-loops
 
-.c.o:
-	$(CC)  $(FLAGS) -c $< -o $*.o
+bindir = /usr/local/bin
 
-greedy: $(OBJS)
-	$(CC) $(FLAGS) -lncurses -o greedy
+greedy:
+	$(CC) $(FLAGS) -lncurses -o greedy greedy.c
+	$(STRIP) greedy
+
+debug:
+	$(CC) -O2 -Wall -lncurses -o greedy greedy.c
 
 all:: greedy
 
 clean:
 	rm ./greedy
-	rm *.o
+
+install:
+	cp greedy $(bindir)
+
+uninstall:
+	rm $(bindir)/greedy
+
+remove:: uninstall
