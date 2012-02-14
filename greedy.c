@@ -15,7 +15,7 @@
 #include <ncurses.h>
 #include <stdlib.h>
 
-#define VERSION "Version: 0.1.1"
+#define VERSION "Version: 0.1.2"
 
 #define S_MENU 0
 #define S_NEWGAME 1
@@ -42,6 +42,7 @@ int isGameOver();
 int getRandomInt(int min, int max);
 void game();
 void quit(int ret_code);
+void usage();
 
 struct level_pos level[LEVEL_WIDTH][LEVEL_HEIGHT];
 
@@ -52,11 +53,35 @@ int px, py, score;
 char score_str[12];
 
 int main(int argc, char *argv[]) {
+	int transparent_bg = 0;
+	int optchr;
+	/* getopt code from cmatrix
+	 * http://www.asty.org/cmatrix
+	 *
+	 * There aren't too many clargs yet, but this code will be easier
+	 * to develop later, when there are more options...
+	 */
+	while ( (optchr = getopt(argc, argv, "t")) != EOF) {
+		switch (optchr) {
+			case 't':
+				transparent_bg = 1;
+				break;
+			case 'h':
+			case '?':
+				usage();
+				exit(0);
+		}
+	}
 	srand(time((time_t *) 0));
 	
 	initscr();
 	if (has_colors()) {
 		int bg = COLOR_BLACK;
+		if (transparent_bg) {
+			if (use_default_colors() != ERR) {
+				bg = -1;
+			}
+		}
 		start_color();
 		init_pair(N_COLOR, COLOR_GREEN, bg);
 		init_pair(H_COLOR, COLOR_CYAN, bg);
@@ -147,10 +172,16 @@ void game() {
 		else if (state == S_OVER) {
 			clear();
 			attron(COLOR_PAIR(N_COLOR));
-			mvaddstr(LEVEL_HEIGHT / 2, (LEVEL_WIDTH - 9) / 2,
-					"Game Over");
+			mvaddstr((LEVEL_HEIGHT-4) / 2,(LEVEL_WIDTH-41) / 2,
+					"  ___                   ___");
+			mvaddstr((LEVEL_HEIGHT-4) / 2 + 1,(LEVEL_WIDTH-41) / 2,
+					" / __|__ _ _ __  ___   / _ \\__ _____ _ _");
+			mvaddstr((LEVEL_HEIGHT-4) / 2 + 2,(LEVEL_WIDTH-41) / 2,
+					"| (_ / _` | '  \\/ -_) | (_) \\ V / -_) '_|");
+			mvaddstr((LEVEL_HEIGHT-4) / 2 + 3,(LEVEL_WIDTH-41) / 2,
+					" \\___\\__,_|_|_|_\\___|  \\___/ \\_/\\___|_|");
 			sprintf(score_str, "%s %d", "Score: ", score);
-			mvaddstr(LEVEL_HEIGHT / 2 + 1, (LEVEL_WIDTH - 12) / 2,
+			mvaddstr((LEVEL_HEIGHT -4) / 2 + 5, (LEVEL_WIDTH - 12) / 2,
 					score_str);
 			mvaddstr(LEVEL_HEIGHT - 5,(LEVEL_WIDTH - 13) / 2,
 					"Press any key");
@@ -288,6 +319,13 @@ int isGameOver() {
 void quit(int ret_code) {
 	endwin();
 	exit(ret_code);
+}
+
+void usage() {
+	printf("Greedy %s%s", VERSION, "\n");
+	printf("Usage: greedy -[ht]\n");
+	printf("  -h: Print help and exit\n");
+	printf("  -t: Transparent background color\n");
 }
 
 int getRandomInt(int min, int max) {
