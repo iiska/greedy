@@ -3,7 +3,10 @@ TODO
 
   - global hiscore saving that works without setuid binary if possible
 
-  - different playmodes, current is 'classic'
+  - new different playmodes
+  - multiple hiscore files
+
+  - teleport traps
 
   - 'custom' levels
     - other shapes than rectangles for levels
